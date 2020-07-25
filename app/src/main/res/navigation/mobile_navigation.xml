@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/live_broadcast">
+
+    <fragment
+        android:id="@+id/live_broadcast"
+        android:name="zfani.assaf.radiokahollavan.ui.fragments.LiveBroadcastFragment"
+        android:label="@string/title_live_broadcast"
+        tools:layout="@layout/fragment_live_broadcast" />
+
+    <fragment
+        android:id="@+id/broadcast_schedule"
+        android:name="zfani.assaf.radiokahollavan.ui.fragments.BroadcastScheduleFragment"
+        android:label="@string/title_broadcast_schedule"
+        tools:layout="@layout/fragment_broadcast_schedule" />
+
+    <fragment
+        android:id="@+id/sending_regards"
+        android:name="zfani.assaf.radiokahollavan.ui.fragments.SendingRegardsFragment"
+        android:label="@string/title_sending_regards"
+        tools:layout="@layout/fragment_sending_regards" />
+
+    <fragment
+        android:id="@+id/updates"
+        android:name="zfani.assaf.radiokahollavan.ui.fragments.UpdatesFragment"
+        android:label="@string/title_updates"
+        tools:layout="@layout/fragment_updates" />
+
+    <fragment
+        android:id="@+id/contact_us"
+        android:name="zfani.assaf.radiokahollavan.ui.fragments.ContactUsFragment"
+        android:label="@string/title_contact_us"
+        tools:layout="@layout/fragment_contact_us" />
+
+</navigation>

@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">רדיו כחול לבן</string>
+    <string name="title_live_broadcast">שידור חי</string>
+    <string name="title_broadcast_schedule">לוח שידורים</string>
+    <string name="title_sending_regards">שליחת ד\"ש</string>
+    <string name="title_updates">עדכונים</string>
+    <string name="title_contact_us">צור קשר</string>
+    <string name="sub_title_contact_us">הבית של המוזיקה הים תיכונית</string>
+    <string name="all_rights_reserved">© כל הזכויות שמורות לרדיו כחול לבן</string>
+    <string name="send_regards">שלחו הודעה לאולפן</string>
+    <string name="sent_regards">הד\"ש שלך נשלח בהצלחה לאולפן!</string>
+    <string name="sender_name">שם</string>
+    <string name="sender_massage">מה תרצו לכתוב לאולפן?</string>
+    <string name="empty_fields">אחד או יותר מהשדות ריקים</string>
+    <string name="last_played">נוגנו לאחרונה</string>
+    <string name="music_is_the_answer">MUSIC IS THE ANSWER</string>
+    <string-array name="tab_titles">
+        <item>א\'</item>
+        <item>ב\'</item>
+        <item>ג\'</item>
+        <item>ד\'</item>
+        <item>ה\'</item>
+        <item>ו\'</item>
+        <item>שבת</item>
+    </string-array>
+</resources>

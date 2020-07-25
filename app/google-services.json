@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "312906636712",
+    "firebase_url": "https://radio-kahol-lavan-c562d.firebaseio.com",
+    "project_id": "radio-kahol-lavan-c562d",
+    "storage_bucket": "radio-kahol-lavan-c562d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:312906636712:android:8f573300de3cf73935d19d",
+        "android_client_info": {
+          "package_name": "radio.kahol.lavan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "312906636712-enen3dj2jmd6ecc93foefdbi15bfaitn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBzootU4069BST9-G-oIOyW8EI2EJQSeg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "312906636712-enen3dj2jmd6ecc93foefdbi15bfaitn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "312906636712-d1thpa40h3c87b1ecaum29bstftmq8gg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.radiokahollavan.Radio-Kahol-Lavan"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

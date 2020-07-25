@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/live_broadcast"
+        android:icon="@drawable/live_broadcast"
+        android:title="@string/title_live_broadcast" />
+
+    <item
+        android:id="@+id/broadcast_schedule"
+        android:icon="@drawable/broadcast_schedule"
+        android:title="@string/title_broadcast_schedule" />
+
+    <item
+        android:id="@+id/sending_regards"
+        android:icon="@drawable/sending_regards"
+        android:title="@string/title_sending_regards" />
+
+    <item
+        android:id="@+id/updates"
+        android:icon="@drawable/updates"
+        android:title="@string/title_updates" />
+
+    <item
+        android:id="@+id/contact_us"
+        android:icon="@drawable/contact_us"
+        android:title="@string/title_contact_us" />
+
+</menu>
