@@ -54,8 +54,6 @@ public class RadioService extends Service implements Player.EventListener {
     private boolean onGoingCall = false;
     private TelephonyManager telephonyManager;
     private WifiManager.WifiLock wifiLock;
-    private MediaNotificationManager notificationManager;
-    private RadioManager.PlaybackStatus status;
     private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
 
         @Override
@@ -63,21 +61,7 @@ public class RadioService extends Service implements Player.EventListener {
             pause();
         }
     };
-    private final PhoneStateListener phoneStateListener = new PhoneStateListener() {
-
-        @Override
-        public void onCallStateChanged(int state, String incomingNumber) {
-            if (state == TelephonyManager.CALL_STATE_OFFHOOK || state == TelephonyManager.CALL_STATE_RINGING) {
-                if (isNotPlaying()) return;
-                onGoingCall = true;
-                stop();
-            } else if (state == TelephonyManager.CALL_STATE_IDLE) {
-                if (!onGoingCall) return;
-                onGoingCall = false;
-                Executors.newSingleThreadScheduledExecutor().schedule(() -> play(), 1, TimeUnit.SECONDS);
-            }
-        }
-    };
+    private MediaNotificationManager notificationManager;
     private final MediaSessionCompat.Callback mediasSessionCallback = new MediaSessionCompat.Callback() {
 
         @Override
@@ -97,6 +81,22 @@ public class RadioService extends Service implements Player.EventListener {
         public void onPlay() {
             super.onPlay();
             play();
+        }
+    };
+    private RadioManager.PlaybackStatus status;
+    private final PhoneStateListener phoneStateListener = new PhoneStateListener() {
+
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber) {
+            if (state == TelephonyManager.CALL_STATE_OFFHOOK || state == TelephonyManager.CALL_STATE_RINGING) {
+                if (isNotPlaying()) return;
+                onGoingCall = true;
+                stop();
+            } else if (state == TelephonyManager.CALL_STATE_IDLE) {
+                if (!onGoingCall) return;
+                onGoingCall = false;
+                Executors.newSingleThreadScheduledExecutor().schedule(() -> play(), 1, TimeUnit.SECONDS);
+            }
         }
     };
 
@@ -132,9 +132,9 @@ public class RadioService extends Service implements Player.EventListener {
                 IcyInfo info = (IcyInfo) metadata.get(0);
                 App.songTitle.setValue(info.title);
                 mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Radio Kahol Lavan")
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, info.title)
                         .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, getString(R.string.app_name))
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, info.title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Radio Kahol Lavan")
                         .build());
                 notificationManager.startNotify(status);
             }

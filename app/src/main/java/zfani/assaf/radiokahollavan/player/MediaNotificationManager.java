@@ -67,7 +67,7 @@ public class MediaNotificationManager {
                 .setLargeIcon(largeIcon)
                 .setContentIntent(pendingIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setSmallIcon(R.drawable.notification)
+                .setSmallIcon(R.drawable.ic_music)
                 .addAction(icon, "pause", action)
                 .addAction(R.drawable.ic_stop_notification, "stop", stopAction)
                 .setShowWhen(false)

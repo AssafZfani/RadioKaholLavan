@@ -76,7 +76,6 @@
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         android:clickable="false"
-        android:drawableStart="@drawable/telegram"
         android:drawablePadding="5dp"
         android:elevation="10dp"
         android:gravity="center"
@@ -84,6 +83,7 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:textColor="@android:color/white"
         android:textStyle="bold"
+        app:drawableStartCompat="@drawable/telegram"
         app:layout_constraintBaseline_toBaselineOf="@id/btnSendingRegards"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

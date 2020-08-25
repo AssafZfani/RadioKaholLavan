@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import zfani.assaf.radiokahollavan.R;
 import zfani.assaf.radiokahollavan.base.BaseActivity;
-import zfani.assaf.radiokahollavan.utils.adapters.SongAdapter;
+import zfani.assaf.radiokahollavan.ui.adapters.SongAdapter;
 import zfani.assaf.radiokahollavan.viewmodel.AudioTrackViewModel;
 
 public class AudioTrackActivity extends BaseActivity {

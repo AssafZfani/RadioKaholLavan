@@ -7,30 +7,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.work.Constraints;
-import androidx.work.NetworkType;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkContinuation;
-import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import zfani.assaf.radiokahollavan.model.Broadcast;
 import zfani.assaf.radiokahollavan.player.RadioManager;
 import zfani.assaf.radiokahollavan.player.RadioService;
-import zfani.assaf.radiokahollavan.utils.workers.BroadcastWorker;
-import zfani.assaf.radiokahollavan.utils.workers.CleanupWorker;
 
 public class App extends Application {
 
     public static final String[] daysArray = {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
-    public static LiveData<WorkInfo> broadcastWorkStatus;
     public static MutableLiveData<RadioManager.PlaybackStatus> status;
     public static MutableLiveData<String> appInfo, songTitle;
+    public static MutableLiveData<HashMap<String, List<Broadcast>>> broadcasts;
 
     @Override
     public void onCreate() {
@@ -47,12 +43,25 @@ public class App extends Application {
     }
 
     private void initBroadcasts() {
-        WorkManager workManager = WorkManager.getInstance(this);
-        WorkContinuation workContinuation = workManager.beginWith(new OneTimeWorkRequest.Builder(CleanupWorker.class).build());
-        OneTimeWorkRequest oneTimeWorkRequest = new OneTimeWorkRequest.Builder(BroadcastWorker.class).setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build();
-        workContinuation = workContinuation.then(oneTimeWorkRequest);
-        workContinuation.enqueue();
-        broadcastWorkStatus = workManager.getWorkInfoByIdLiveData(oneTimeWorkRequest.getId());
+        broadcasts = new MutableLiveData<>();
+        for (String day : daysArray) {
+            FirebaseFirestore.getInstance().collection("BroadcastSchedule").document("MainBroadcastSchedule").collection(day + "Shows").addSnapshotListener((documentSnapshot, e) -> {
+                List<Broadcast> broadcastList = new ArrayList<>();
+                if (documentSnapshot != null) {
+                    for (QueryDocumentSnapshot document : documentSnapshot) {
+                        Broadcast broadcast = document.toObject(Broadcast.class);
+                        broadcast.setId(document.getId());
+                        broadcastList.add(broadcast);
+                    }
+                    HashMap<String, List<Broadcast>> map = broadcasts.getValue();
+                    if (map == null) {
+                        map = new HashMap<>();
+                    }
+                    map.put(day, broadcastList);
+                    broadcasts.setValue(map);
+                }
+            });
+        }
     }
 
     private void initAppInfo() {

@@ -11,8 +11,7 @@ import androidx.core.content.ContextCompat;
 
 import zfani.assaf.radiokahollavan.R;
 
-@SuppressLint("Registered")
-public class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
     @SuppressLint("SourceLockedOrientationActivity")
     @Override
