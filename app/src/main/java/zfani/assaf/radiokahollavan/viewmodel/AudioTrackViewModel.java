@@ -1,5 +1,7 @@
 package zfani.assaf.radiokahollavan.viewmodel;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.Application;
 
 import androidx.annotation.NonNull;
@@ -19,8 +21,6 @@ import retrofit2.Response;
 import zfani.assaf.radiokahollavan.model.APIClient;
 import zfani.assaf.radiokahollavan.model.APIInterface;
 import zfani.assaf.radiokahollavan.model.Song;
-
-import static android.content.Context.MODE_PRIVATE;
 
 public class AudioTrackViewModel extends AndroidViewModel {
 

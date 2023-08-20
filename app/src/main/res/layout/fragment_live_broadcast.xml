@@ -18,16 +18,21 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="ContentDescription" />
 
-    <SeekBar
-        android:id="@+id/seekBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        app:layout_constraintBottom_toTopOf="@id/vBroadcast"
+    <FrameLayout
+        android:layout_width="20dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/ivLogo"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ivLogo" />
+        app:layout_constraintTop_toTopOf="@id/ivLogo">
+
+        <SeekBar
+            android:id="@+id/seekBar"
+            android:layout_width="128dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:rotation="90" />
+
+    </FrameLayout>
 
     <include
         android:id="@+id/vBroadcast"
@@ -38,7 +43,7 @@
         app:layout_constraintBottom_toTopOf="@id/tvSongName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/seekBar" />
+        app:layout_constraintTop_toBottomOf="@id/ivLogo" />
 
     <TextView
         android:id="@+id/tvSongName"
@@ -78,6 +83,7 @@
         android:layout_marginStart="25dp"
         android:background="@drawable/arrow"
         android:src="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/ivPlayOrPause"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ivPlayOrPause"

@@ -11,7 +11,6 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,26 +65,23 @@ public class App extends Application {
 
     private void initAppInfo() {
         appInfo = new MutableLiveData<>();
-        FirebaseFirestore.getInstance().collection("AppInfo").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                QuerySnapshot documentSnapshots = task.getResult();
-                if (documentSnapshots != null) {
-                    for (QueryDocumentSnapshot document : documentSnapshots) {
-                        Object contactDescription = document.getData().get("contactDescription");
-                        appInfo.setValue(contactDescription == null ? "" : ((String) contactDescription).replaceAll("\\\\n", "\n"));
-                        Object updatedStreamingUrl = document.getData().get("updatedStreamingUrl");
-                        if (updatedStreamingUrl != null) {
-                            String text = (String) updatedStreamingUrl;
-                            if (!text.isEmpty()) {
-                                getSharedPreferences(getPackageName(), MODE_PRIVATE).edit().putString("StreamingUrl", text).apply();
-                            }
+        FirebaseFirestore.getInstance().collection("AppInfo").addSnapshotListener((documentSnapshots, error) -> {
+            if (documentSnapshots != null) {
+                for (QueryDocumentSnapshot document : documentSnapshots) {
+                    Object contactDescription = document.getData().get("contactDescription");
+                    appInfo.setValue(contactDescription == null ? "" : ((String) contactDescription).replaceAll("\\\\n", "\n"));
+                    Object updatedStreamingUrl = document.getData().get("updatedStreamingUrl");
+                    if (updatedStreamingUrl != null) {
+                        String text = (String) updatedStreamingUrl;
+                        if (!text.isEmpty()) {
+                            getSharedPreferences(getPackageName(), MODE_PRIVATE).edit().putString("StreamingUrl", text).apply();
                         }
-                        Object updatedRecentlyPlayedUrl = document.getData().get("updatedRecentlyPlayedUrl");
-                        if (updatedRecentlyPlayedUrl != null) {
-                            String text = (String) updatedRecentlyPlayedUrl;
-                            if (!text.isEmpty()) {
-                                getSharedPreferences(getPackageName(), MODE_PRIVATE).edit().putString("RecentlyPlayedUrl", text).apply();
-                            }
+                    }
+                    Object updatedRecentlyPlayedUrl = document.getData().get("updatedRecentlyPlayedUrl");
+                    if (updatedRecentlyPlayedUrl != null) {
+                        String text = (String) updatedRecentlyPlayedUrl;
+                        if (!text.isEmpty()) {
+                            getSharedPreferences(getPackageName(), MODE_PRIVATE).edit().putString("RecentlyPlayedUrl", text).apply();
                         }
                     }
                 }
