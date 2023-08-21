@@ -31,8 +31,6 @@ public class LiveBroadcastFragment extends BaseFragment {
 
     private AudioManager audioManager;
     private SeekBar seekbar;
-    private TextView tvYemeniTitle;
-
     private final BroadcastReceiver volumeBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -41,6 +39,7 @@ public class LiveBroadcastFragment extends BaseFragment {
             }
         }
     };
+    private TextView tvYemeniTitle;
 
     @Override
     protected boolean isLiveBroadcast() {

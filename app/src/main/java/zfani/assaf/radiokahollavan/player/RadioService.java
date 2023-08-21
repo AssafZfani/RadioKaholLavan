@@ -55,11 +55,12 @@ public class RadioService extends Service implements Player.Listener {
     private static final String streamingUrl = "https://radiokahollavan.radioca.st/stream";
     private static final String yemeniStreamingUrl = "https://radiokahollavan.com/yemenstream";
     private final IBinder iBinder = new LocalBinder();
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    private final TelephonyCallBack telephonyCallBack = new TelephonyCallBack(this);
+    boolean onGoingCall = false;
     private SimpleExoPlayer exoPlayer;
     private MediaSessionCompat mediaSession;
     private MediaControllerCompat.TransportControls transportControls;
-    @RequiresApi(api = Build.VERSION_CODES.S)
-    private final TelephonyCallBack telephonyCallBack = new TelephonyCallBack(this);
     private TelephonyManager telephonyManager;
     private WifiManager.WifiLock wifiLock;
     private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
@@ -70,6 +71,8 @@ public class RadioService extends Service implements Player.Listener {
         }
     };
     private MediaNotificationManager notificationManager;
+    private RadioManager.PlaybackStatus status;
+    private boolean isMainStreaming = true;
     private final MediaSessionCompat.Callback mediasSessionCallback = new MediaSessionCompat.Callback() {
 
         @Override
@@ -91,7 +94,6 @@ public class RadioService extends Service implements Player.Listener {
             play();
         }
     };
-    private RadioManager.PlaybackStatus status;
     private final PhoneStateListener phoneStateListener = new PhoneStateListener() {
 
         @Override
@@ -107,8 +109,6 @@ public class RadioService extends Service implements Player.Listener {
             }
         }
     };
-    boolean onGoingCall = false;
-    private boolean isMainStreaming = true;
 
     @Nullable
     @Override

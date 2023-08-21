@@ -8,7 +8,7 @@ android {
         applicationId "radio.kahol.lavan"
         minSdkVersion 21
         targetSdk 34
-        versionCode 2
+        versionCode 9
         versionName "1.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
