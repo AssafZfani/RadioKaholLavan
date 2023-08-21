@@ -9,6 +9,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -18,10 +19,13 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
@@ -41,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 import zfani.assaf.radiokahollavan.App;
 import zfani.assaf.radiokahollavan.R;
 
-public class RadioService extends Service implements Player.EventListener {
+public class RadioService extends Service implements Player.Listener {
 
     public static final String ACTION_PLAY = "zfani.assaf.radiokahollavan.player.ACTION_PLAY";
     public static final String ACTION_PAUSE = "zfani.assaf.radiokahollavan.player.ACTION_PAUSE";
@@ -51,7 +55,8 @@ public class RadioService extends Service implements Player.EventListener {
     private SimpleExoPlayer exoPlayer;
     private MediaSessionCompat mediaSession;
     private MediaControllerCompat.TransportControls transportControls;
-    private boolean onGoingCall = false;
+    @RequiresApi(api = Build.VERSION_CODES.S)
+    private final TelephonyCallBack telephonyCallBack = new TelephonyCallBack(this);
     private TelephonyManager telephonyManager;
     private WifiManager.WifiLock wifiLock;
     private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
@@ -99,6 +104,7 @@ public class RadioService extends Service implements Player.EventListener {
             }
         }
     };
+    boolean onGoingCall = false;
 
     @Nullable
     @Override
@@ -116,19 +122,22 @@ public class RadioService extends Service implements Player.EventListener {
         mediaSession = new MediaSessionCompat(this, getClass().getSimpleName());
         transportControls = mediaSession.getController().getTransportControls();
         mediaSession.setActive(true);
-        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mediaSession.setCallback(mediasSessionCallback);
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            telephonyManager.registerTelephonyCallback(getMainExecutor(), telephonyCallBack);
+        } else {
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
         exoPlayer = new SimpleExoPlayer.Builder(this)
                 .setBandwidthMeter(DefaultBandwidthMeter.getSingletonInstance(this))
                 .setTrackSelector(new DefaultTrackSelector(this, new AdaptiveTrackSelection.Factory()))
                 .build();
-        exoPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.CONTENT_TYPE_MUSIC).build(), true);
+        exoPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build(), true);
         exoPlayer.addListener(this);
         exoPlayer.addAnalyticsListener(new AnalyticsListener() {
             @Override
-            public void onMetadata(EventTime eventTime, Metadata metadata) {
+            public void onMetadata(@NonNull EventTime eventTime, @NonNull Metadata metadata) {
                 IcyInfo info = (IcyInfo) metadata.get(0);
                 App.songTitle.setValue(info.title);
                 mediaSession.setMetadata(new MediaMetadataCompat.Builder()
@@ -174,7 +183,11 @@ public class RadioService extends Service implements Player.EventListener {
         exoPlayer.release();
         exoPlayer.removeListener(this);
         if (telephonyManager != null) {
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                telephonyManager.unregisterTelephonyCallback(telephonyCallBack);
+            } else {
+                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
+            }
         }
         notificationManager.cancelNotify();
         mediaSession.release();
@@ -203,7 +216,7 @@ public class RadioService extends Service implements Player.EventListener {
     }
 
     @Override
-    public void onPlayerError(ExoPlaybackException error) {
+    public void onPlayerError(@NonNull PlaybackException error) {
         Toast.makeText(getApplicationContext(), "ההשמעה נכשלה, אנא נסו שוב מאוחר יותר", Toast.LENGTH_LONG).show();
     }
 
@@ -216,7 +229,7 @@ public class RadioService extends Service implements Player.EventListener {
             wifiLock.acquire();
         }
         exoPlayer.prepare(new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)), DefaultBandwidthMeter.getSingletonInstance(this)))
-                .createMediaSource(Uri.parse(getApplicationContext().getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl))));
+                .createMediaSource(MediaItem.fromUri(Uri.parse(getApplicationContext().getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl)))));
         exoPlayer.setPlayWhenReady(true);
     }
 

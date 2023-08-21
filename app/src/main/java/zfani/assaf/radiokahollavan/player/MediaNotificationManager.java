@@ -1,5 +1,7 @@
 package zfani.assaf.radiokahollavan.player;
 
+import static android.app.PendingIntent.FLAG_IMMUTABLE;
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -36,22 +38,22 @@ public class MediaNotificationManager {
 
         Intent playbackAction = new Intent(service, RadioService.class);
         playbackAction.setAction(RadioService.ACTION_PAUSE);
-        PendingIntent action = PendingIntent.getService(service, 1, playbackAction, 0);
+        PendingIntent action = PendingIntent.getService(service, 1, playbackAction, FLAG_IMMUTABLE);
 
         if (playbackStatus.equals(RadioManager.PlaybackStatus.PAUSED) || playbackStatus.equals(RadioManager.PlaybackStatus.IDLE)) {
             icon = R.drawable.ic_play_notification;
             playbackAction.setAction(RadioService.ACTION_PLAY);
-            action = PendingIntent.getService(service, 2, playbackAction, 0);
+            action = PendingIntent.getService(service, 2, playbackAction, FLAG_IMMUTABLE);
         }
 
         Intent stopIntent = new Intent(service, RadioService.class);
         stopIntent.setAction(RadioService.ACTION_STOP);
-        PendingIntent stopAction = PendingIntent.getService(service, 3, stopIntent, 0);
+        PendingIntent stopAction = PendingIntent.getService(service, 3, stopIntent, FLAG_IMMUTABLE);
 
         Intent intent = new Intent(service, MainActivity.class);
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        PendingIntent pendingIntent = PendingIntent.getActivity(service, 0, intent, 0);
+        PendingIntent pendingIntent = PendingIntent.getActivity(service, 0, intent, FLAG_IMMUTABLE);
 
         notificationManager.cancel(NOTIFICATION_ID);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

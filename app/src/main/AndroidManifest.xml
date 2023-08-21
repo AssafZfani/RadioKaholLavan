@@ -3,6 +3,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <permission android:name="android.permission.MEDIA_CONTENT_CONTROL" />
@@ -37,7 +39,9 @@
 
         <activity android:name=".ui.activities.AudioTrackActivity" />
 
-        <service android:name=".player.RadioService" />
+        <service
+            android:name=".player.RadioService"
+            android:foregroundServiceType="mediaPlayback" />
 
         <receiver
             android:name=".player.MediaButtonReceiver"

@@ -1,12 +1,21 @@
 package zfani.assaf.radiokahollavan.ui.activities;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+import java.util.Objects;
 
 import zfani.assaf.radiokahollavan.R;
 import zfani.assaf.radiokahollavan.base.BaseActivity;
@@ -33,17 +42,41 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        radioManager.bind(this);
+        if (isServiceAllowed()) {
+            radioManager.bind(this);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 10001);
+        }
     }
 
     @Override
     protected void onDestroy() {
-        radioManager.unbind(this);
+        if (isServiceAllowed()) {
+            radioManager.unbind(this);
+        }
         super.onDestroy();
     }
 
     @Override
     public void onBackPressed() {
         moveTaskToBack(true);
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 10001) {
+            if (permissions.length > 0 && grantResults.length > 0 && Objects.equals(permissions[0],
+                    Manifest.permission.READ_PHONE_STATE) && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                radioManager.bind(this);
+            } else {
+                Toast.makeText(this, "הנגן לא יכול לפעול ללא מתן הרשאה", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private boolean isServiceAllowed() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
     }
 }
