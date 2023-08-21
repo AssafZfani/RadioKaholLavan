@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -21,6 +22,8 @@ import zfani.assaf.radiokahollavan.App;
 import zfani.assaf.radiokahollavan.R;
 import zfani.assaf.radiokahollavan.base.BaseFragment;
 import zfani.assaf.radiokahollavan.model.Broadcast;
+import zfani.assaf.radiokahollavan.player.RadioManager;
+import zfani.assaf.radiokahollavan.player.RadioService;
 import zfani.assaf.radiokahollavan.ui.activities.AudioTrackActivity;
 import zfani.assaf.radiokahollavan.ui.adapters.BroadcastViewHolder;
 
@@ -28,6 +31,7 @@ public class LiveBroadcastFragment extends BaseFragment {
 
     private AudioManager audioManager;
     private SeekBar seekbar;
+    private TextView tvYemeniTitle;
 
     private final BroadcastReceiver volumeBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -63,6 +67,7 @@ public class LiveBroadcastFragment extends BaseFragment {
         });
         root.findViewById(R.id.ivAudioTrack).setOnClickListener(v -> startActivity(new Intent(getActivity(), AudioTrackActivity.class)));
         seekbar = root.findViewById(R.id.seekBar);
+        tvYemeniTitle = root.findViewById(R.id.tvYemeniTitle);
         return root;
     }
 
@@ -91,6 +96,24 @@ public class LiveBroadcastFragment extends BaseFragment {
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.media.VOLUME_CHANGED_ACTION");
         requireActivity().registerReceiver(volumeBroadcastReceiver, filter);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        App.status.observe(getViewLifecycleOwner(), status -> {
+            boolean isPlaying = status.equals(RadioManager.PlaybackStatus.PLAYING);
+            boolean isYemeni = getArguments() != null && getArguments().getBoolean("isYemeni", false);
+            if (isYemeni) {
+                tvYemeniTitle.setText(isPlaying ? R.string.title_kahol_lavan_yemeni : R.string.title_radio_kahol_lavan_yemeni);
+                tvYemeniTitle.setVisibility(View.VISIBLE);
+            } else {
+                tvYemeniTitle.setVisibility(View.INVISIBLE);
+            }
+            Intent intent = new Intent(requireContext(), RadioService.class);
+            intent.setAction(isYemeni ? RadioService.YEMENI : RadioService.MAIN);
+            requireActivity().startService(intent);
+        });
     }
 
     @Override

@@ -17,9 +17,9 @@
         android:title="@string/title_sending_regards" />
 
     <item
-        android:id="@+id/updates"
-        android:icon="@drawable/updates"
-        android:title="@string/title_updates" />
+        android:id="@+id/yemeni"
+        android:icon="@drawable/yemeni"
+        android:title="@string/title_yemeni" />
 
     <item
         android:id="@+id/contact_us"

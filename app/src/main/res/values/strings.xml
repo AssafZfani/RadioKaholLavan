@@ -3,7 +3,7 @@
     <string name="title_live_broadcast">שידור חי</string>
     <string name="title_broadcast_schedule">לוח שידורים</string>
     <string name="title_sending_regards">שליחת ד\"ש</string>
-    <string name="title_updates">עדכונים</string>
+    <string name="title_yemeni">תימנית</string>
     <string name="title_contact_us">צור קשר</string>
     <string name="sub_title_contact_us">הבית של המוזיקה הים תיכונית</string>
     <string name="all_rights_reserved">© כל הזכויות שמורות לרדיו כחול לבן</string>
@@ -13,6 +13,8 @@
     <string name="sender_massage">מה תרצו לכתוב לאולפן?</string>
     <string name="empty_fields">אחד או יותר מהשדות ריקים</string>
     <string name="last_played">נוגנו לאחרונה</string>
+    <string name="title_kahol_lavan_yemeni">כחול לבן בתימנית</string>
+    <string name="title_radio_kahol_lavan_yemeni">רדיו כחול לבן בתימנית</string>
     <string name="music_is_the_answer">MUSIC IS THE ANSWER</string>
     <string-array name="tab_titles">
         <item>א\'</item>

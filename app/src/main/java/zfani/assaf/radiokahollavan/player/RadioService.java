@@ -50,7 +50,10 @@ public class RadioService extends Service implements Player.Listener {
     public static final String ACTION_PLAY = "zfani.assaf.radiokahollavan.player.ACTION_PLAY";
     public static final String ACTION_PAUSE = "zfani.assaf.radiokahollavan.player.ACTION_PAUSE";
     public static final String ACTION_STOP = "zfani.assaf.radiokahollavan.player.ACTION_STOP";
+    public static final String MAIN = "MAIN";
+    public static final String YEMENI = "YEMENI";
     private static final String streamingUrl = "https://radiokahollavan.radioca.st/stream";
+    private static final String yemeniStreamingUrl = "https://radiokahollavan.com/yemenstream";
     private final IBinder iBinder = new LocalBinder();
     private SimpleExoPlayer exoPlayer;
     private MediaSessionCompat mediaSession;
@@ -105,6 +108,7 @@ public class RadioService extends Service implements Player.Listener {
         }
     };
     boolean onGoingCall = false;
+    private boolean isMainStreaming = true;
 
     @Nullable
     @Override
@@ -159,14 +163,30 @@ public class RadioService extends Service implements Player.Listener {
         if (TextUtils.isEmpty(action)) {
             return START_NOT_STICKY;
         }
-        if (action != null) {
-            if (action.equalsIgnoreCase(ACTION_PLAY)) {
+        switch (action) {
+            case ACTION_PLAY:
                 transportControls.play();
-            } else if (action.equalsIgnoreCase(ACTION_PAUSE)) {
+                break;
+            case ACTION_PAUSE:
                 transportControls.pause();
-            } else if (action.equalsIgnoreCase(ACTION_STOP)) {
+                break;
+            case ACTION_STOP:
                 transportControls.stop();
-            }
+                break;
+            case MAIN:
+                if (isMainStreaming) {
+                    break;
+                }
+                isMainStreaming = true;
+                reset();
+                break;
+            case YEMENI:
+                if (!isMainStreaming) {
+                    break;
+                }
+                isMainStreaming = false;
+                reset();
+                break;
         }
         return START_NOT_STICKY;
     }
@@ -229,7 +249,8 @@ public class RadioService extends Service implements Player.Listener {
             wifiLock.acquire();
         }
         exoPlayer.prepare(new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)), DefaultBandwidthMeter.getSingletonInstance(this)))
-                .createMediaSource(MediaItem.fromUri(Uri.parse(getApplicationContext().getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl)))));
+                .createMediaSource(MediaItem.fromUri(Uri.parse(isMainStreaming ? getApplicationContext()
+                        .getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl) : yemeniStreamingUrl))));
         exoPlayer.setPlayWhenReady(true);
     }
 
@@ -250,6 +271,13 @@ public class RadioService extends Service implements Player.Listener {
             stop();
             notificationManager.cancelNotify();
         }
+    }
+
+    private void reset() {
+        exoPlayer.prepare(new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)), DefaultBandwidthMeter.getSingletonInstance(this)))
+                .createMediaSource(MediaItem.fromUri(Uri.parse(isMainStreaming ? getApplicationContext()
+                        .getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl) : yemeniStreamingUrl))));
+        exoPlayer.seekTo(0);
     }
 
     public RadioManager.PlaybackStatus getStatus() {

@@ -7,6 +7,19 @@
     android:padding="10dp"
     tools:ignore="ContentDescription">
 
+    <TextView
+        android:id="@+id/tvYemeniTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/ivLogo"
         android:layout_width="0dp"
@@ -15,7 +28,7 @@
         app:layout_constraintBottom_toTopOf="@id/vBroadcast"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvYemeniTitle"
         tools:ignore="ContentDescription" />
 
     <FrameLayout

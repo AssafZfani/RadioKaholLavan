@@ -24,10 +24,17 @@
         tools:layout="@layout/fragment_sending_regards" />
 
     <fragment
-        android:id="@+id/updates"
-        android:name="zfani.assaf.radiokahollavan.ui.fragments.UpdatesFragment"
-        android:label="@string/title_updates"
-        tools:layout="@layout/fragment_updates" />
+        android:id="@+id/yemeni"
+        android:name="zfani.assaf.radiokahollavan.ui.fragments.LiveBroadcastFragment"
+        android:label="@string/title_yemeni"
+        tools:layout="@layout/fragment_live_broadcast">
+
+        <argument
+            android:name="isYemeni"
+            android:defaultValue="true"
+            app:argType="boolean" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/contact_us"

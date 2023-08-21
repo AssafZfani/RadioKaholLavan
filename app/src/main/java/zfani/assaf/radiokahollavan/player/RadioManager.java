@@ -11,7 +11,7 @@ import zfani.assaf.radiokahollavan.App;
 public class RadioManager {
 
     private static RadioManager instance = null;
-    private RadioService service;
+    public RadioService service;
     private final ServiceConnection serviceConnection = new ServiceConnection() {
 
         @Override
