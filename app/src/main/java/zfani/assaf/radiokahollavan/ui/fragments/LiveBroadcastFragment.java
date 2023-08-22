@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -23,7 +25,6 @@ import zfani.assaf.radiokahollavan.R;
 import zfani.assaf.radiokahollavan.base.BaseFragment;
 import zfani.assaf.radiokahollavan.model.Broadcast;
 import zfani.assaf.radiokahollavan.player.RadioManager;
-import zfani.assaf.radiokahollavan.player.RadioService;
 import zfani.assaf.radiokahollavan.ui.activities.AudioTrackActivity;
 import zfani.assaf.radiokahollavan.ui.adapters.BroadcastViewHolder;
 
@@ -49,21 +50,23 @@ public class LiveBroadcastFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_live_broadcast, container, false);
-        BroadcastViewHolder broadcastViewHolder = new BroadcastViewHolder(root.findViewById(R.id.vBroadcast));
-        App.songTitle.observe(getViewLifecycleOwner(), songTitle -> {
-            String day = App.daysArray[Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1];
-            Date now = new Date(System.currentTimeMillis());
-            App.broadcasts.observe(getViewLifecycleOwner(), map -> {
-                List<Broadcast> broadcastList = map.get(day);
-                if (broadcastList != null) {
-                    for (Broadcast broadcast : broadcastList) {
-                        if (broadcast.startDate.before(now) && broadcast.endDate.after(now)) {
-                            broadcastViewHolder.bindData(broadcast);
+        if (!isYemeni) {
+            BroadcastViewHolder broadcastViewHolder = new BroadcastViewHolder(root.findViewById(R.id.vBroadcast));
+            App.songTitle.observe(getViewLifecycleOwner(), songTitle -> {
+                String day = App.daysArray[Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1];
+                Date now = new Date(System.currentTimeMillis());
+                App.broadcasts.observe(getViewLifecycleOwner(), map -> {
+                    List<Broadcast> broadcastList = map.get(day);
+                    if (broadcastList != null) {
+                        for (Broadcast broadcast : broadcastList) {
+                            if (broadcast.startDate.before(now) && broadcast.endDate.after(now)) {
+                                broadcastViewHolder.bindData(broadcast);
+                            }
                         }
                     }
-                }
+                });
             });
-        });
+        }
         root.findViewById(R.id.ivAudioTrack).setOnClickListener(v -> startActivity(new Intent(getActivity(), AudioTrackActivity.class)));
         seekbar = root.findViewById(R.id.seekBar);
         tvYemeniTitle = root.findViewById(R.id.tvYemeniTitle);
@@ -79,7 +82,14 @@ public class LiveBroadcastFragment extends BaseFragment {
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int newVolume, boolean b) {
+                seekbar.setVisibility(View.VISIBLE);
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0);
+                new Handler().postDelayed(() -> {
+                    AlphaAnimation animation = new AlphaAnimation(1.0f, 0.0f);
+                    animation.setDuration(1000);
+                    seekbar.startAnimation(animation);
+                    seekbar.setVisibility(View.GONE);
+                }, 5000);
             }
 
             @Override
@@ -102,16 +112,12 @@ public class LiveBroadcastFragment extends BaseFragment {
         super.onResume();
         App.status.observe(getViewLifecycleOwner(), status -> {
             boolean isPlaying = status.equals(RadioManager.PlaybackStatus.PLAYING);
-            boolean isYemeni = getArguments() != null && getArguments().getBoolean("isYemeni", false);
             if (isYemeni) {
                 tvYemeniTitle.setText(isPlaying ? R.string.title_kahol_lavan_yemeni : R.string.title_radio_kahol_lavan_yemeni);
                 tvYemeniTitle.setVisibility(View.VISIBLE);
             } else {
                 tvYemeniTitle.setVisibility(View.INVISIBLE);
             }
-            Intent intent = new Intent(requireContext(), RadioService.class);
-            intent.setAction(isYemeni ? RadioService.YEMENI : RadioService.MAIN);
-            requireActivity().startService(intent);
         });
     }
 
