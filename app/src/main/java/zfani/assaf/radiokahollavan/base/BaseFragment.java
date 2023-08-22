@@ -59,9 +59,11 @@ public class BaseFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Intent intent = new Intent(requireContext(), RadioService.class);
-        intent.setAction(isYemeni ? RadioService.YEMENI : RadioService.MAIN);
-        requireActivity().startService(intent);
+        if (App.isServiceAllowed(requireContext())) {
+            Intent intent = new Intent(requireContext(), RadioService.class);
+            intent.setAction(isYemeni ? RadioService.YEMENI : RadioService.MAIN);
+            requireActivity().startService(intent);
+        }
     }
 
     protected int getTitle() {

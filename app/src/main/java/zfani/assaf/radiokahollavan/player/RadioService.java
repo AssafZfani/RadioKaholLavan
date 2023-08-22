@@ -174,16 +174,12 @@ public class RadioService extends Service implements Player.Listener {
                 transportControls.stop();
                 break;
             case MAIN:
-                if (isMainStreaming) {
-                    break;
-                }
+                if (isMainStreaming) break;
                 isMainStreaming = true;
                 reset();
                 break;
             case YEMENI:
-                if (!isMainStreaming) {
-                    break;
-                }
+                if (!isMainStreaming) break;
                 isMainStreaming = false;
                 reset();
                 break;

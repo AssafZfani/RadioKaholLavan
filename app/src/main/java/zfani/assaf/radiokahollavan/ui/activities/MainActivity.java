@@ -2,13 +2,11 @@ package zfani.assaf.radiokahollavan.ui.activities;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
@@ -17,6 +15,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.Objects;
 
+import zfani.assaf.radiokahollavan.App;
 import zfani.assaf.radiokahollavan.R;
 import zfani.assaf.radiokahollavan.base.BaseActivity;
 import zfani.assaf.radiokahollavan.player.RadioManager;
@@ -35,14 +34,13 @@ public class MainActivity extends BaseActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         // NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
-
         radioManager = RadioManager.getInstance();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (isServiceAllowed()) {
+        if (App.isServiceAllowed(this)) {
             radioManager.bind(this);
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 10001);
@@ -51,7 +49,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void onDestroy() {
-        if (isServiceAllowed()) {
+        if (App.isServiceAllowed(this)) {
             radioManager.unbind(this);
         }
         super.onDestroy();
@@ -61,7 +59,6 @@ public class MainActivity extends BaseActivity {
     public void onBackPressed() {
         moveTaskToBack(true);
     }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -74,9 +71,5 @@ public class MainActivity extends BaseActivity {
                 Toast.makeText(this, "הנגן לא יכול לפעול ללא מתן הרשאה", Toast.LENGTH_LONG).show();
             }
         }
-    }
-
-    private boolean isServiceAllowed() {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
     }
 }
