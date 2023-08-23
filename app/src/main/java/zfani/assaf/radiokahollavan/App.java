@@ -31,6 +31,11 @@ public class App extends Application {
     public static MutableLiveData<String> appInfo, songTitle;
     public static MutableLiveData<HashMap<String, List<Broadcast>>> broadcasts;
 
+    public static boolean isServiceAllowed(Context context) {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || ContextCompat.checkSelfPermission(context,
+                Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -106,10 +111,5 @@ public class App extends Application {
                 }
             }
         }, filter);
-    }
-
-    public static boolean isServiceAllowed(Context context) {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || ContextCompat.checkSelfPermission(context,
-                Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
     }
 }

@@ -1,22 +1,38 @@
 package zfani.assaf.radiokahollavan.player;
 
 import android.os.Build;
+import android.os.Handler;
 import android.telephony.TelephonyCallback;
 import android.telephony.TelephonyManager;
 
 import androidx.annotation.RequiresApi;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 @RequiresApi(api = Build.VERSION_CODES.S)
 public class TelephonyCallBack extends TelephonyCallback implements TelephonyCallback.CallStateListener {
 
+    private static volatile TelephonyCallBack INSTANCE;
     private final RadioService radioService;
 
-    public TelephonyCallBack(RadioService radioService) {
+    private TelephonyCallBack(RadioService radioService) {
         this.radioService = radioService;
     }
+
+    public static TelephonyCallBack getInstance(RadioService radioService) {
+        // Check if the instance is already created
+        if (INSTANCE == null) {
+            // synchronize the block to ensure only one thread can execute at a time
+            synchronized (TelephonyCallBack.class) {
+                // check again if the instance is already created
+                if (INSTANCE == null) {
+                    // create the singleton instance
+                    INSTANCE = new TelephonyCallBack(radioService);
+                }
+            }
+        }
+        // return the singleton instance
+        return INSTANCE;
+    }
+
 
     @Override
     public void onCallStateChanged(int state) {
@@ -27,7 +43,7 @@ public class TelephonyCallBack extends TelephonyCallback implements TelephonyCal
         } else if (state == TelephonyManager.CALL_STATE_IDLE) {
             if (!radioService.onGoingCall) return;
             radioService.onGoingCall = false;
-            Executors.newSingleThreadScheduledExecutor().schedule(radioService::play, 1, TimeUnit.SECONDS);
+            new Handler().postDelayed(radioService::play, 500);
         }
     }
 }

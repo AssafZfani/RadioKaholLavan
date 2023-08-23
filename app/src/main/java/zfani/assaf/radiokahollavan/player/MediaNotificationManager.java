@@ -58,7 +58,7 @@ public class MediaNotificationManager {
         notificationManager.cancel(NOTIFICATION_ID);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = (NotificationManager) service.getSystemService(Context.NOTIFICATION_SERVICE);
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, service.getString(R.string.app_name), NotificationManager.IMPORTANCE_NONE);
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, service.getString(R.string.app_name), NotificationManager.IMPORTANCE_DEFAULT);
             channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             manager.createNotificationChannel(channel);
         }
@@ -75,9 +75,7 @@ public class MediaNotificationManager {
                 .setShowWhen(false)
                 .setStyle(new androidx.media.app.NotificationCompat.DecoratedMediaCustomViewStyle()
                         .setMediaSession(service.getMediaSession().getSessionToken())
-                        .setShowActionsInCompactView(0, 1)
-                        .setShowCancelButton(true)
-                        .setCancelButtonIntent(stopAction));
+                        .setShowActionsInCompactView(0, 1));
         service.startForeground(NOTIFICATION_ID, builder.build());
     }
 

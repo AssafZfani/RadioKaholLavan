@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -21,7 +22,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.MediaItem;
@@ -39,9 +39,6 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
 import zfani.assaf.radiokahollavan.App;
 import zfani.assaf.radiokahollavan.R;
 
@@ -55,8 +52,6 @@ public class RadioService extends Service implements Player.Listener {
     private static final String streamingUrl = "https://radiokahollavan.radioca.st/stream";
     private static final String yemeniStreamingUrl = "https://radiokahollavan.com/yemenstream";
     private final IBinder iBinder = new LocalBinder();
-    @RequiresApi(api = Build.VERSION_CODES.S)
-    private final TelephonyCallBack telephonyCallBack = new TelephonyCallBack(this);
     boolean onGoingCall = false;
     private SimpleExoPlayer exoPlayer;
     private MediaSessionCompat mediaSession;
@@ -105,7 +100,7 @@ public class RadioService extends Service implements Player.Listener {
             } else if (state == TelephonyManager.CALL_STATE_IDLE) {
                 if (!onGoingCall) return;
                 onGoingCall = false;
-                Executors.newSingleThreadScheduledExecutor().schedule(() -> play(), 1, TimeUnit.SECONDS);
+                new Handler().postDelayed(() -> play(), 500);
             }
         }
     };
@@ -129,7 +124,7 @@ public class RadioService extends Service implements Player.Listener {
         mediaSession.setCallback(mediasSessionCallback);
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            telephonyManager.registerTelephonyCallback(getMainExecutor(), telephonyCallBack);
+            telephonyManager.registerTelephonyCallback(getMainExecutor(), TelephonyCallBack.getInstance(this));
         } else {
             telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
         }
@@ -200,7 +195,7 @@ public class RadioService extends Service implements Player.Listener {
         exoPlayer.removeListener(this);
         if (telephonyManager != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                telephonyManager.unregisterTelephonyCallback(telephonyCallBack);
+                telephonyManager.unregisterTelephonyCallback(TelephonyCallBack.getInstance(this));
             } else {
                 telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
             }
@@ -227,7 +222,9 @@ public class RadioService extends Service implements Player.Listener {
                 status = playWhenReady ? RadioManager.PlaybackStatus.PLAYING : RadioManager.PlaybackStatus.PAUSED;
                 break;
         }
-        notificationManager.startNotify(status);
+        if (!status.equals(RadioManager.PlaybackStatus.LOADING)) {
+            notificationManager.startNotify(status);
+        }
         App.status.postValue(status);
     }
 
