@@ -4,13 +4,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AlphaAnimation;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -69,6 +69,8 @@ public class LiveBroadcastFragment extends BaseFragment {
         }
         root.findViewById(R.id.ivAudioTrack).setOnClickListener(v -> startActivity(new Intent(getActivity(), AudioTrackActivity.class)));
         seekbar = root.findViewById(R.id.seekBar);
+        seekbar.getProgressDrawable().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
+        seekbar.getThumb().setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
         tvYemeniTitle = root.findViewById(R.id.tvYemeniTitle);
         return root;
     }
@@ -82,14 +84,7 @@ public class LiveBroadcastFragment extends BaseFragment {
         seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int newVolume, boolean b) {
-                seekbar.setVisibility(View.VISIBLE);
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0);
-                new Handler().postDelayed(() -> {
-                    AlphaAnimation animation = new AlphaAnimation(1.0f, 0.0f);
-                    animation.setDuration(1000);
-                    seekbar.startAnimation(animation);
-                    seekbar.setVisibility(View.GONE);
-                }, 5000);
             }
 
             @Override

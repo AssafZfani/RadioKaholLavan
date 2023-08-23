@@ -271,6 +271,7 @@ public class RadioService extends Service implements Player.Listener {
                 .createMediaSource(MediaItem.fromUri(Uri.parse(isMainStreaming ? getApplicationContext()
                         .getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl) : yemeniStreamingUrl))));
         exoPlayer.seekTo(0);
+        exoPlayer.setPlayWhenReady(true);
     }
 
     public RadioManager.PlaybackStatus getStatus() {

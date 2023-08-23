@@ -43,8 +43,7 @@
             android:layout_width="240dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:rotation="90"
-            android:visibility="gone" />
+            android:rotation="90" />
 
     </FrameLayout>
 
