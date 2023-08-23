@@ -51,10 +51,69 @@ public class RadioService extends Service implements Player.Listener {
     private MediaControllerCompat.TransportControls transportControls;
     private WifiManager.WifiLock wifiLock;
     private MediaNotificationManager notificationManager;
-    private RadioManager.PlaybackStatus status;
     private boolean isMainStreaming = true;
     private boolean isPlaying = false;
+    private RadioManager.PlaybackStatus status;    private final MediaSessionCompat.Callback mediasSessionCallback = new MediaSessionCompat.Callback() {
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            stop();
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            stop();
+            notificationManager.cancelNotify();
+        }
+
+        @Override
+        public void onPlay() {
+            super.onPlay();
+            play();
+        }
+    };
+
+    @Override
+    public void onDestroy() {
+        stop();
+        exoPlayer.release();
+        exoPlayer.removeListener(this);
+        notificationManager.cancelNotify();
+        mediaSession.release();
+        audioManager.abandonAudioFocus(audioFocusChangeListener);
+        super.onDestroy();
+    }
     private AudioManager audioManager;
+
+    public void play() {
+        if (wifiLock != null && !wifiLock.isHeld()) {
+            wifiLock.acquire();
+        }
+        int result = audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            exoPlayer.prepare(new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)), DefaultBandwidthMeter.getSingletonInstance(this)))
+                    .createMediaSource(MediaItem.fromUri(Uri.parse(isMainStreaming ? getApplicationContext()
+                            .getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl) : yemeniStreamingUrl))));
+            exoPlayer.setPlayWhenReady(true);
+            isPlaying = true;
+        }
+    }    private final AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = focusChange -> {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_GAIN:
+                if (!isPlaying) {
+                    play();
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS:
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                if (isPlaying) {
+                    stop();
+                }
+                break;
+        }
+    };
 
     @Nullable
     @Override
@@ -70,7 +129,6 @@ public class RadioService extends Service implements Player.Listener {
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getPackageName());
         mediaSession = new MediaSessionCompat(this, getClass().getSimpleName());
         transportControls = mediaSession.getController().getTransportControls();
-        mediaSession.setActive(true);
         mediaSession.setCallback(mediasSessionCallback);
         exoPlayer = new SimpleExoPlayer.Builder(this)
                 .setBandwidthMeter(DefaultBandwidthMeter.getSingletonInstance(this))
@@ -95,37 +153,6 @@ public class RadioService extends Service implements Player.Listener {
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         play();
     }
-
-    @Override
-    public void onDestroy() {
-        stop();
-        exoPlayer.release();
-        exoPlayer.removeListener(this);
-        notificationManager.cancelNotify();
-        mediaSession.release();
-        audioManager.abandonAudioFocus(audioFocusChangeListener);
-        super.onDestroy();
-    }    private final MediaSessionCompat.Callback mediasSessionCallback = new MediaSessionCompat.Callback() {
-
-        @Override
-        public void onPause() {
-            super.onPause();
-            stop();
-        }
-
-        @Override
-        public void onStop() {
-            super.onStop();
-            stop();
-            notificationManager.cancelNotify();
-        }
-
-        @Override
-        public void onPlay() {
-            super.onPlay();
-            play();
-        }
-    };
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -162,34 +189,6 @@ public class RadioService extends Service implements Player.Listener {
         stopSelf();
         return super.onUnbind(intent);
     }
-
-    public void play() {
-        if (wifiLock != null && !wifiLock.isHeld()) {
-            wifiLock.acquire();
-        }
-        int result = audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            exoPlayer.prepare(new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)), DefaultBandwidthMeter.getSingletonInstance(this)))
-                    .createMediaSource(MediaItem.fromUri(Uri.parse(isMainStreaming ? getApplicationContext()
-                            .getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl) : yemeniStreamingUrl))));
-            exoPlayer.setPlayWhenReady(true);
-            isPlaying = true;
-        }
-    }    private final AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = focusChange -> {
-        switch (focusChange) {
-            case AudioManager.AUDIOFOCUS_GAIN:
-                if (!isPlaying) {
-                    play();
-                }
-                break;
-            case AudioManager.AUDIOFOCUS_LOSS:
-            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                if (isPlaying) {
-                    stop();
-                }
-                break;
-        }
-    };
 
     public void stop() {
         exoPlayer.stop();
