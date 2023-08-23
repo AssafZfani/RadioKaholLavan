@@ -1,16 +1,12 @@
 package zfani.assaf.radiokahollavan;
 
-import android.Manifest;
 import android.app.Application;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.os.Build;
 
-import androidx.core.content.ContextCompat;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,11 +26,6 @@ public class App extends Application {
     public static MutableLiveData<RadioManager.PlaybackStatus> status;
     public static MutableLiveData<String> appInfo, songTitle;
     public static MutableLiveData<HashMap<String, List<Broadcast>>> broadcasts;
-
-    public static boolean isServiceAllowed(Context context) {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || ContextCompat.checkSelfPermission(context,
-                Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED;
-    }
 
     @Override
     public void onCreate() {

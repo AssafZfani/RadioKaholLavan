@@ -1,22 +1,16 @@
 package zfani.assaf.radiokahollavan.player;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
-import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -52,28 +46,71 @@ public class RadioService extends Service implements Player.Listener {
     private static final String streamingUrl = "https://radiokahollavan.radioca.st/stream";
     private static final String yemeniStreamingUrl = "https://radiokahollavan.com/yemenstream";
     private final IBinder iBinder = new LocalBinder();
-    boolean onGoingCall = false;
     private SimpleExoPlayer exoPlayer;
     private MediaSessionCompat mediaSession;
     private MediaControllerCompat.TransportControls transportControls;
-    private TelephonyManager telephonyManager;
     private WifiManager.WifiLock wifiLock;
-    private final BroadcastReceiver becomingNoisyReceiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            pause();
-        }
-    };
     private MediaNotificationManager notificationManager;
     private RadioManager.PlaybackStatus status;
     private boolean isMainStreaming = true;
-    private final MediaSessionCompat.Callback mediasSessionCallback = new MediaSessionCompat.Callback() {
+    private boolean isPlaying = false;
+    private AudioManager audioManager;
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return iBinder;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        notificationManager = new MediaNotificationManager(this);
+        wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
+                .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getPackageName());
+        mediaSession = new MediaSessionCompat(this, getClass().getSimpleName());
+        transportControls = mediaSession.getController().getTransportControls();
+        mediaSession.setActive(true);
+        mediaSession.setCallback(mediasSessionCallback);
+        exoPlayer = new SimpleExoPlayer.Builder(this)
+                .setBandwidthMeter(DefaultBandwidthMeter.getSingletonInstance(this))
+                .setTrackSelector(new DefaultTrackSelector(this, new AdaptiveTrackSelection.Factory()))
+                .build();
+        exoPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build(), false);
+        exoPlayer.addListener(this);
+        exoPlayer.addAnalyticsListener(new AnalyticsListener() {
+            @Override
+            public void onMetadata(@NonNull EventTime eventTime, @NonNull Metadata metadata) {
+                IcyInfo info = (IcyInfo) metadata.get(0);
+                App.songTitle.setValue(info.title);
+                mediaSession.setMetadata(new MediaMetadataCompat.Builder()
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, info.title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, getString(R.string.app_name))
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Radio Kahol Lavan")
+                        .build());
+                notificationManager.startNotify(status);
+            }
+        });
+        status = RadioManager.PlaybackStatus.PLAYING;
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        play();
+    }
+
+    @Override
+    public void onDestroy() {
+        stop();
+        exoPlayer.release();
+        exoPlayer.removeListener(this);
+        notificationManager.cancelNotify();
+        mediaSession.release();
+        audioManager.abandonAudioFocus(audioFocusChangeListener);
+        super.onDestroy();
+    }    private final MediaSessionCompat.Callback mediasSessionCallback = new MediaSessionCompat.Callback() {
 
         @Override
         public void onPause() {
             super.onPause();
-            pause();
+            stop();
         }
 
         @Override
@@ -89,68 +126,6 @@ public class RadioService extends Service implements Player.Listener {
             play();
         }
     };
-    private final PhoneStateListener phoneStateListener = new PhoneStateListener() {
-
-        @Override
-        public void onCallStateChanged(int state, String incomingNumber) {
-            if (state == TelephonyManager.CALL_STATE_OFFHOOK || state == TelephonyManager.CALL_STATE_RINGING) {
-                if (isNotPlaying()) return;
-                onGoingCall = true;
-                stop();
-            } else if (state == TelephonyManager.CALL_STATE_IDLE) {
-                if (!onGoingCall) return;
-                onGoingCall = false;
-                new Handler().postDelayed(() -> play(), 500);
-            }
-        }
-    };
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return iBinder;
-    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        onGoingCall = false;
-        notificationManager = new MediaNotificationManager(this);
-        wifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getPackageName());
-        mediaSession = new MediaSessionCompat(this, getClass().getSimpleName());
-        transportControls = mediaSession.getController().getTransportControls();
-        mediaSession.setActive(true);
-        mediaSession.setCallback(mediasSessionCallback);
-        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            telephonyManager.registerTelephonyCallback(getMainExecutor(), TelephonyCallBack.getInstance(this));
-        } else {
-            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
-        }
-        exoPlayer = new SimpleExoPlayer.Builder(this)
-                .setBandwidthMeter(DefaultBandwidthMeter.getSingletonInstance(this))
-                .setTrackSelector(new DefaultTrackSelector(this, new AdaptiveTrackSelection.Factory()))
-                .build();
-        exoPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build(), true);
-        exoPlayer.addListener(this);
-        exoPlayer.addAnalyticsListener(new AnalyticsListener() {
-            @Override
-            public void onMetadata(@NonNull EventTime eventTime, @NonNull Metadata metadata) {
-                IcyInfo info = (IcyInfo) metadata.get(0);
-                App.songTitle.setValue(info.title);
-                mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, info.title)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, getString(R.string.app_name))
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Radio Kahol Lavan")
-                        .build());
-                notificationManager.startNotify(status);
-            }
-        });
-        registerReceiver(becomingNoisyReceiver, new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
-        status = RadioManager.PlaybackStatus.PLAYING;
-        play();
-    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -188,22 +163,38 @@ public class RadioService extends Service implements Player.Listener {
         return super.onUnbind(intent);
     }
 
-    @Override
-    public void onDestroy() {
-        pause();
-        exoPlayer.release();
-        exoPlayer.removeListener(this);
-        if (telephonyManager != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                telephonyManager.unregisterTelephonyCallback(TelephonyCallBack.getInstance(this));
-            } else {
-                telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_NONE);
-            }
+    public void play() {
+        if (wifiLock != null && !wifiLock.isHeld()) {
+            wifiLock.acquire();
         }
-        notificationManager.cancelNotify();
-        mediaSession.release();
-        unregisterReceiver(becomingNoisyReceiver);
-        super.onDestroy();
+        int result = audioManager.requestAudioFocus(audioFocusChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            exoPlayer.prepare(new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)), DefaultBandwidthMeter.getSingletonInstance(this)))
+                    .createMediaSource(MediaItem.fromUri(Uri.parse(isMainStreaming ? getApplicationContext()
+                            .getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl) : yemeniStreamingUrl))));
+            exoPlayer.setPlayWhenReady(true);
+            isPlaying = true;
+        }
+    }    private final AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = focusChange -> {
+        switch (focusChange) {
+            case AudioManager.AUDIOFOCUS_GAIN:
+                if (!isPlaying) {
+                    play();
+                }
+                break;
+            case AudioManager.AUDIOFOCUS_LOSS:
+            case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                if (isPlaying) {
+                    stop();
+                }
+                break;
+        }
+    };
+
+    public void stop() {
+        exoPlayer.stop();
+        isPlaying = false;
+        wifiLockRelease();
     }
 
     @Override
@@ -237,25 +228,9 @@ public class RadioService extends Service implements Player.Listener {
         return !status.equals(RadioManager.PlaybackStatus.PLAYING);
     }
 
-    public void play() {
-        if (wifiLock != null && !wifiLock.isHeld()) {
-            wifiLock.acquire();
-        }
-        exoPlayer.prepare(new ProgressiveMediaSource.Factory(new DefaultDataSourceFactory(this, Util.getUserAgent(this, getString(R.string.app_name)), DefaultBandwidthMeter.getSingletonInstance(this)))
-                .createMediaSource(MediaItem.fromUri(Uri.parse(isMainStreaming ? getApplicationContext()
-                        .getSharedPreferences(getPackageName(), MODE_PRIVATE).getString("StreamingUrl", streamingUrl) : yemeniStreamingUrl))));
-        exoPlayer.setPlayWhenReady(true);
-    }
 
-    public void pause() {
-        exoPlayer.setPlayWhenReady(false);
-        wifiLockRelease();
-    }
 
-    public void stop() {
-        exoPlayer.stop();
-        wifiLockRelease();
-    }
+
 
     public void playOrStop() {
         if (isNotPlaying()) {
